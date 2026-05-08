@@ -129,17 +129,27 @@ def status_counts(db: Session = Depends(get_db)):
     "/data",
     response_model=list[ResearcherDataResponse],
 )
+@router.get(
+    "/data",
+    response_model=list[ResearcherDataResponse],
+)
 def researcher_data(
     site_id: str | None = Query(default=None),
     start_date: str | None = Query(default=None),
     end_date: str | None = Query(default=None),
     status: str | None = Query(default=None),
-    limit: int = Query(default=100, le=500),
+    limit: int = Query(default=100, le=5000),
     db: Session = Depends(get_db),
 ):
     """
     returns filtered data for the researcher data page table
     """
+
+    # treat "all" or empty string as "no filter"
+    if site_id in ("all", ""):
+        site_id = None
+    if status in ("all", ""):
+        status = None
 
     validate_filters(start_date, end_date, status)
 
@@ -163,6 +173,12 @@ def export_researcher_data(
     """
     exports filtered researcher data as csv
     """
+    # treat "all" or empty string as "no filter"
+    if site_id in ("all", ""):
+        site_id = None
+    if status in ("all", ""):
+        status = None
+
     validate_filters(start_date, end_date, status)
     readings = get_researcher_data_for_export(
         db=db,
